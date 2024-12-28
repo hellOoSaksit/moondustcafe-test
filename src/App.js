@@ -1,105 +1,156 @@
-// App.js
+// src/App.js
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import "./App.css";
 
-// ใช้ URL ของ API
-const API_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "/api/items"
-    : "http://localhost:3000/api/items";
+const App = () => {
+  const [menu, setMenu] = useState([]);
+  const [newItem, setNewItem] = useState({
+    name: "",
+    price: "",
+    quantity: "",
+    sweetness: "ปกติ", // Default sweetness
+  });
 
-function App() {
-  const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: "", quantity: 0 });
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const fetchItems = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get(API_BASE_URL);
-      console.log("Fetched items:", response.data);
-      if (Array.isArray(response.data)) {
-        setItems(response.data);
-      } else {
-        console.error("Response is not an array:", response.data);
-        setItems([]);
-      }
-    } catch (err) {
-      console.error("Error fetching items:", err);
-      setError("Failed to fetch items. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addItem = async () => {
-    try {
-      if (!newItem.name.trim() || newItem.quantity <= 0) {
-        alert("Please provide valid item details.");
-        return;
-      }
-      await axios.post(API_BASE_URL, newItem);
-      setNewItem({ name: "", quantity: 0 });
-      fetchItems();
-    } catch (err) {
-      console.error("Error adding item:", err);
-      setError("Failed to add item. Please try again.");
-    }
-  };
-
-  const deleteItem = async (id) => {
-    try {
-      await axios.delete(`${API_BASE_URL}?id=${id}`);
-      fetchItems();
-    } catch (err) {
-      console.error("Error deleting item:", err);
-      setError("Failed to delete item. Please try again.");
-    }
-  };
+  const [editingItem, setEditingItem] = useState(null); // เก็บรายการที่กำลังแก้ไข
 
   useEffect(() => {
-    fetchItems();
+    fetchMenu();
   }, []);
 
+  // ดึงข้อมูลเมนูจาก Backend
+  const fetchMenu = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/menu");
+      const data = await response.json();
+      setMenu(data);
+    } catch (error) {
+      console.error("Failed to fetch menu:", error);
+    }
+  };
+
+  // เพิ่มสินค้าใหม่
+  const addMenuItem = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newItem),
+      });
+      if (response.ok) {
+        fetchMenu();
+        setNewItem({ name: "", price: "", quantity: "", sweetness: "ปกติ" });
+      }
+    } catch (error) {
+      console.error("Failed to add menu item:", error);
+    }
+  };
+
+  // แก้ไขสินค้า
+  const updateMenuItem = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/menu/${editingItem._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingItem),
+      });
+      if (response.ok) {
+        fetchMenu();
+        setEditingItem(null); // ยกเลิกการแก้ไข
+      }
+    } catch (error) {
+      console.error("Failed to update menu item:", error);
+    }
+  };
+
+  // ลบสินค้า
+  const deleteMenuItem = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/menu/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) fetchMenu();
+    } catch (error) {
+      console.error("Failed to delete menu item:", error);
+    }
+  };
+
   return (
-    <div>
-      <h1>Moondust Cafe Inventory</h1>
-      <div>
+    <div className="app-container">
+      <h1>Moondust Cafe Menu</h1>
+
+      <div className="menu-form">
         <input
           type="text"
-          placeholder="Item name"
+          placeholder="ชื่อสินค้า"
           value={newItem.name}
           onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
         />
         <input
           type="number"
-          placeholder="Quantity"
-          value={newItem.quantity}
-          onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
+          placeholder="ราคา"
+          value={newItem.price}
+          onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
         />
-        <button onClick={addItem} disabled={!newItem.name || newItem.quantity <= 0}>
-          Add Item
-        </button>
+        <input
+          type="number"
+          placeholder="จำนวน"
+          value={newItem.quantity}
+          onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+        />
+        <select
+          value={newItem.sweetness}
+          onChange={(e) => setNewItem({ ...newItem, sweetness: e.target.value })}
+        >
+          <option value="หวานน้อย">หวานน้อย</option>
+          <option value="ปกติ">ปกติ</option>
+          <option value="หวานมาก">หวานมาก</option>
+        </select>
+        <button onClick={addMenuItem}>เพิ่มสินค้า</button>
       </div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul>
-          {items.map((item) => (
-            <li key={item._id}>
-              <span>
-                {item.name} - {item.quantity}
-              </span>
-              <button onClick={() => deleteItem(item._id)}>Delete</button>
-            </li>
-          ))}
-        </ul>
-      )}
+
+      <ul>
+        {menu.map((item) => (
+          <li key={item._id}>
+            {editingItem?._id === item._id ? (
+              <>
+                <input
+                  type="text"
+                  value={editingItem.name}
+                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingItem.price}
+                  onChange={(e) => setEditingItem({ ...editingItem, price: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingItem.quantity}
+                  onChange={(e) => setEditingItem({ ...editingItem, quantity: e.target.value })}
+                />
+                <select
+                  value={editingItem.sweetness}
+                  onChange={(e) => setEditingItem({ ...editingItem, sweetness: e.target.value })}
+                >
+                  <option value="หวานน้อย">หวานน้อย</option>
+                  <option value="ปกติ">ปกติ</option>
+                  <option value="หวานมาก">หวานมาก</option>
+                </select>
+                <button onClick={updateMenuItem}>บันทึก</button>
+                <button onClick={() => setEditingItem(null)}>ยกเลิก</button>
+              </>
+            ) : (
+              <>
+                {item.name} - {item.price} บาท - {item.quantity} ชิ้น - {item.sweetness}
+                <button onClick={() => setEditingItem(item)}>แก้ไข</button>
+                <button onClick={() => deleteMenuItem(item._id)}>ลบ</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
 
 export default App;

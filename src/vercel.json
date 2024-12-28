@@ -1,10 +1,11 @@
 {
     "version": 2,
-    "rewrites": [
-      {
-        "source": "/api/(.*)",
-        "destination": "/api/items.js"
-      }
+    "builds": [
+      { "src": "src/api/menu.js", "use": "@vercel/node" },
+      { "src": "src/**/*", "use": "@vercel/static-build" }
+    ],
+    "routes": [
+      { "src": "/api/menu", "dest": "src/api/menu.js" }
     ]
   }
   
