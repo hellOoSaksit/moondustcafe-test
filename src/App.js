@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect } from "react";
 import "./App.css";
 
@@ -27,12 +26,11 @@ const App = () => {
       console.error("Failed to fetch menu:", error);
     }
   };
-  
 
   // เพิ่มสินค้าใหม่
   const addMenuItem = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/menu", {
+      const response = await fetch("/api/menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newItem),
@@ -49,7 +47,7 @@ const App = () => {
   // แก้ไขสินค้า
   const updateMenuItem = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/menu/${editingItem._id}`, {
+      const response = await fetch(`/api/menu/${editingItem._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingItem),
@@ -66,7 +64,7 @@ const App = () => {
   // ลบสินค้า
   const deleteMenuItem = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/menu/${id}`, {
+      const response = await fetch(`/api/menu/${id}`, {
         method: "DELETE",
       });
       if (response.ok) fetchMenu();
