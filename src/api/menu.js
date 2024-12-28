@@ -1,6 +1,6 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-const uri = "mongodb+srv://reactapp:PRIhSOeKL9joJ8CQ@moondustcafe.trjdyky.mongodb.net/?retryWrites=true&w=majority&appName=MoondustCafe";
+const uri = "mongodb+srv://reactapp:PRIhSOeKL9joJ8CQ@moondustcafe.trjdyky.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -9,8 +9,8 @@ const client = new MongoClient(uri, {
   },
 });
 
-// เชื่อมต่อ MongoDB
 let menuCollection;
+
 client.connect().then(() => {
   menuCollection = client.db("MoondustCafe").collection("menu");
   console.log("Connected to MongoDB Atlas");
@@ -19,7 +19,7 @@ client.connect().then(() => {
 });
 
 export default async function handler(req, res) {
-  const { method, query } = req;
+  const { method } = req;
 
   if (method === "GET") {
     try {
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
 
   if (method === "PUT") {
     try {
-      const { id } = query;
+      const { id } = req.query;
       const updatedMenu = req.body;
       const result = await menuCollection.updateOne(
         { _id: new ObjectId(id) },
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
   if (method === "DELETE") {
     try {
-      const { id } = query;
+      const { id } = req.query;
       const result = await menuCollection.deleteOne({ _id: new ObjectId(id) });
       if (result.deletedCount > 0) {
         return res.status(200).json({ message: "Menu item deleted successfully" });
@@ -72,5 +72,5 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(405).json({ error: "Method not allowed" });
+  return res.status(405).json({ error: "Method Not Allowed" });
 }

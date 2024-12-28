@@ -7,19 +7,17 @@ const App = () => {
     name: "",
     price: "",
     quantity: "",
-    sweetness: "ปกติ", // Default sweetness
+    sweetness: "ปกติ",
   });
-
-  const [editingItem, setEditingItem] = useState(null); // เก็บรายการที่กำลังแก้ไข
+  const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
     fetchMenu();
   }, []);
 
-  // ดึงข้อมูลเมนูจาก Backend
   const fetchMenu = async () => {
     try {
-      const response = await fetch("/api/menu"); // ใช้เส้นทาง API บน Vercel
+      const response = await fetch("/api/menu");
       const data = await response.json();
       setMenu(data);
     } catch (error) {
@@ -27,7 +25,6 @@ const App = () => {
     }
   };
 
-  // เพิ่มสินค้าใหม่
   const addMenuItem = async () => {
     try {
       const response = await fetch("/api/menu", {
@@ -44,7 +41,6 @@ const App = () => {
     }
   };
 
-  // แก้ไขสินค้า
   const updateMenuItem = async () => {
     try {
       const response = await fetch(`/api/menu/${editingItem._id}`, {
@@ -54,14 +50,13 @@ const App = () => {
       });
       if (response.ok) {
         fetchMenu();
-        setEditingItem(null); // ยกเลิกการแก้ไข
+        setEditingItem(null);
       }
     } catch (error) {
       console.error("Failed to update menu item:", error);
     }
   };
 
-  // ลบสินค้า
   const deleteMenuItem = async (id) => {
     try {
       const response = await fetch(`/api/menu/${id}`, {
@@ -76,7 +71,6 @@ const App = () => {
   return (
     <div className="app-container">
       <h1>Moondust Cafe Menu</h1>
-
       <div className="menu-form">
         <input
           type="text"

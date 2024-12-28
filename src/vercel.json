@@ -1,11 +1,10 @@
 {
-    "version": 2,
-    "builds": [
-      { "src": "api/menu.js", "use": "@vercel/node" },
-      { "src": "src/**/*", "use": "@vercel/static-build" }
-    ],
-    "routes": [
-      { "src": "/api/menu", "dest": "api/menu.js" }
-    ]
-  }
-  
+  "version": 2,
+  "builds": [
+    { "src": "api/menu.js", "use": "@vercel/node" },
+    { "src": "src/**/*", "use": "@vercel/static-build" }
+  ],
+  "routes": [
+    { "src": "/api/menu", "dest": "api/menu.js" }
+  ]
+}
