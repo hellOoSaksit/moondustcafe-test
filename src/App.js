@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-// ตั้งค่า URL ของ API บน Vercel
-const API_BASE_URL = "/api/items"; // Vercel จะจัดการ URL ให้อัตโนมัติ
+const API_BASE_URL = "/api/items"; // หรือ URL ของ API
 
 function App() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]); // ค่าเริ่มต้นเป็นอาเรย์ว่าง
   const [newItem, setNewItem] = useState({ name: "", quantity: 0 });
 
   const fetchItems = async () => {
     try {
       const response = await axios.get(API_BASE_URL);
-      setItems(response.data);
+      console.log("Fetched items:", response.data); // ตรวจสอบข้อมูลจาก API
+      if (Array.isArray(response.data)) {
+        setItems(response.data);
+      } else {
+        console.error("Response is not an array:", response.data);
+        setItems([]);
+      }
     } catch (error) {
       console.error("Error fetching items:", error);
+      setItems([]);
     }
   };
 
@@ -63,14 +69,18 @@ function App() {
         <button onClick={addItem}>Add Item</button>
       </div>
       <ul>
-        {items.map((item) => (
-          <li key={item._id}>
-            <span>
-              {item.name} - {item.quantity}
-            </span>
-            <button onClick={() => deleteItem(item._id)}>Delete</button>
-          </li>
-        ))}
+        {Array.isArray(items) && items.length > 0 ? (
+          items.map((item) => (
+            <li key={item._id}>
+              <span>
+                {item.name} - {item.quantity}
+              </span>
+              <button onClick={() => deleteItem(item._id)}>Delete</button>
+            </li>
+          ))
+        ) : (
+          <p>No items found.</p>
+        )}
       </ul>
     </div>
   );
