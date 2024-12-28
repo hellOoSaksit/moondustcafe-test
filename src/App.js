@@ -20,13 +20,14 @@ const App = () => {
   // ดึงข้อมูลเมนูจาก Backend
   const fetchMenu = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/menu");
+      const response = await fetch("/api/menu"); // ใช้เส้นทาง API บน Vercel
       const data = await response.json();
       setMenu(data);
     } catch (error) {
       console.error("Failed to fetch menu:", error);
     }
   };
+  
 
   // เพิ่มสินค้าใหม่
   const addMenuItem = async () => {
