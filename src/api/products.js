@@ -1,32 +1,52 @@
-const mongoose = require("mongoose");
+// api/products.js
+import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
-const uri = process.env.MONGO_URI;
-
-const productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  sweetness: { type: String, enum: ["low", "normal", "high"], required: true },
-});
-
-const Product = mongoose.models.Product || mongoose.model("Product", productSchema);
-
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-module.exports = async (req, res) => {
+/**
+ * Fetch all products from Firestore.
+ * @returns {Promise<Array>} An array of products.
+ */
+export const getProducts = async () => {
   try {
-    if (req.method === "GET") {
-      const products = await Product.find();
-      res.status(200).json(products);
-    } else if (req.method === "POST") {
-      const newProduct = new Product(req.body);
-      await newProduct.save();
-      res.status(201).json(newProduct);
-    } else {
-      res.status(405).json({ message: "Method not allowed" }); // รองรับเฉพาะ GET และ POST
-    }
+    const querySnapshot = await getDocs(collection(db, "products"));
+    const products = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return products;
   } catch (error) {
-    console.error("Error in API:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error fetching products:", error);
+    throw new Error("Could not fetch products.");
+  }
+};
+
+/**
+ * Update a product in Firestore.
+ * @param {string} id - The product ID.
+ * @param {Object} updatedData - The updated product data.
+ */
+export const updateProduct = async (id, updatedData) => {
+  try {
+    const productRef = doc(db, "products", id);
+    await updateDoc(productRef, updatedData);
+    console.log("Product updated successfully!");
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw new Error("Could not update product.");
+  }
+};
+
+/**
+ * Delete a product from Firestore.
+ * @param {string} id - The product ID.
+ */
+export const deleteProduct = async (id) => {
+  try {
+    const productRef = doc(db, "products", id);
+    await deleteDoc(productRef);
+    console.log("Product deleted successfully!");
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    throw new Error("Could not delete product.");
   }
 };

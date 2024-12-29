@@ -1,106 +1,178 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import ProductForm from "./components/ProductForm";
+import ProductList from "./components/ProductList";
+import { db } from "./firebase";
+import { collection, setDoc, doc, onSnapshot, getDoc } from "firebase/firestore";
 
-const App = () => {
-  const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    price: "",
-    quantity: "",
-    sweetness: "normal",
-  });
+function App() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [previousProduct, setPreviousProduct] = useState(null);
 
+  // เพิ่ม state สำหรับการค้นหาข้อมูล
+  const [searchText, setSearchText] = useState("");
+  const [searchDate, setSearchDate] = useState("");
+
+  // ฟังก์ชันเพิ่ม log ไปยัง Firestore โดยเก็บ log ใน document เดียวกันสำหรับวันเดียวกัน
+  const addLog = async (action, productName) => {
+    const currentDate = new Date();
+    const logDate = currentDate.toLocaleDateString('th-TH').replace(/\//g, '-');
+    const timestamp = currentDate;
+
+    const newLog = {
+      action,
+      productName,
+      logDate,
+      timestamp,
+    };
+
+    if (!previousProduct || previousProduct.productName !== productName) {
+      try {
+        const logRef = doc(db, "logs", logDate);
+        const docSnapshot = await getDoc(logRef);
+        
+        const existingLogs = docSnapshot.exists() ? docSnapshot.data().menu : [];
+        const updatedLogs = [...existingLogs, newLog];
+
+        await setDoc(logRef, { menu: updatedLogs }, { merge: true });
+
+        console.log('Log added:', newLog);
+      } catch (error) {
+        console.error("Error adding log: ", error);
+      }
+    }
+  };
+
+  // ฟังก์ชันดึงข้อมูล log จาก Firestore
   useEffect(() => {
-    fetchProducts();
+    const unsubscribe = onSnapshot(
+      collection(db, "logs"),
+      (querySnapshot) => {
+        const logList = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const logsWithFormattedTimestamp = (data.menu || []).map(log => {
+            const formattedTimestamp = log.timestamp instanceof Object
+              ? log.timestamp?.toDate()?.toLocaleString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+              : log.timestamp;
+            
+            return {
+              ...log,
+              timestamp: formattedTimestamp
+            };
+          });
+
+          // จัดเรียง log ตาม timestamp จากใหม่ไปเก่า
+          logsWithFormattedTimestamp.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          logList.push({ ...data, menu: logsWithFormattedTimestamp });
+        });
+
+        console.log("Logs fetched: ", logList);
+        setLogs(logList);
+      },
+      (err) => {
+        console.log("Error getting logs: ", err);
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      const res = await axios.get("/api/products");
-      const data = res.data;
+  // ฟังก์ชันกรอง log ตามข้อความและวันที่
+  const filterLogs = (logs) => {
+    return logs.filter((log) => {
+      const dateMatch = searchDate
+        ? log.menu.some(menuLog => menuLog.timestamp.includes(searchDate))
+        : true;
 
-      if (Array.isArray(data)) {
-        setProducts(data);
-      } else {
-        console.error("Invalid data format: Expected an array.");
-        setProducts([]);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setProducts([]);
-    }
+      const textMatch = searchText
+        ? log.menu.some(menuLog => menuLog.productName.toLowerCase().includes(searchText.toLowerCase()))
+        : true;
+
+      return dateMatch && textMatch;
+    });
   };
 
-  const addProduct = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post("/api/products", newProduct);
-      setNewProduct({ name: "", price: "", quantity: "", sweetness: "normal" });
-      fetchProducts();
-    } catch (error) {
-      console.error("Error adding product:", error);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewProduct({ ...newProduct, [name]: value });
-  };
+  // ฟังก์ชันเปลี่ยนแปลงข้อความการค้นหา
+  const handleSearchTextChange = (e) => setSearchText(e.target.value);
+  const handleSearchDateChange = (e) => setSearchDate(e.target.value);
 
   return (
-    <div>
-      <h1>Moondust Cafe</h1>
-      <form onSubmit={addProduct}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Product Name"
-          value={newProduct.name}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="price"
-          placeholder="Price"
-          value={newProduct.price}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="quantity"
-          placeholder="Quantity"
-          value={newProduct.quantity}
-          onChange={handleChange}
-          required
-        />
-        <select
-          name="sweetness"
-          value={newProduct.sweetness}
-          onChange={handleChange}
-        >
-          <option value="low">Low</option>
-          <option value="normal">Normal</option>
-          <option value="high">High</option>
-        </select>
-        <button type="submit">Add Product</button>
-      </form>
+    <div className="flex justify-center min-h-screen bg-gradient-to-r from-blue-100 to-purple-100">
+      <div className="flex flex-col items-center bg-white p-8 rounded-lg shadow-xl max-w-3xl w-full">
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">เมนูร้าน Moondust Cafe</h1>
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600"
+          >
+            เพิ่มสินค้า
+          </button>
+        </div>
+        {isFormOpen && <ProductForm onClose={() => setIsFormOpen(false)} addLog={addLog} />}
+        <ProductList addLog={addLog} />
+      </div>
 
-      <h2>Product List</h2>
-      <ul>
-        {Array.isArray(products) && products.length > 0 ? (
-          products.map((product) => (
-            <li key={product._id}>
-              {product.name} - ${product.price} - Qty: {product.quantity} - Sweetness: {product.sweetness}
-            </li>
-          ))
-        ) : (
-          <p>No products available.</p>
-        )}
-      </ul>
+      {/* แสดง Log ที่กรองแล้ว */}
+      <div className="absolute right-0 top-0 mt-8 mr-8 w-1/4 bg-white p-4 rounded-lg shadow-xl h-96 overflow-y-auto">
+        <h2 className="text-xl font-semibold mb-2">Log การแก้ไข</h2>
+        <div className="space-y-4">
+          {filterLogs(logs).length > 0 ? (
+            filterLogs(logs).map((log, index) => (
+              <div key={index}>
+                {log.menu.filter(menuLog => menuLog.action === 'เพิ่ม').map((menuLog, idx) => (
+                  <div key={idx} className="bg-green-200 p-4 rounded-md mb-2">
+                    <span>
+                      <strong>{menuLog.timestamp}</strong> - 
+                      <span className="font-semibold">{menuLog.action}</span> {menuLog.productName}
+                    </span>
+                  </div>
+                ))}
+                {log.menu.filter(menuLog => menuLog.action === 'แก้ไข').map((menuLog, idx) => (
+                  <div key={idx} className="bg-blue-200 p-4 rounded-md mb-2">
+                    <span>
+                      <strong>{menuLog.timestamp}</strong> - 
+                      <span className="font-semibold">{menuLog.action}</span> {menuLog.productName}
+                    </span>
+                  </div>
+                ))}
+                {log.menu.filter(menuLog => menuLog.action === 'ลบ').map((menuLog, idx) => (
+                  <div key={idx} className="bg-red-200 p-4 rounded-md mb-2">
+                    <span>
+                      <strong>{menuLog.timestamp}</strong> - 
+                      <span className="font-semibold">{menuLog.action}</span> {menuLog.productName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))
+          ) : (
+            <div>ยังไม่มีการบันทึก log</div>
+          )}
+        </div>
+      </div>
+
+      {/* ฟอร์มค้นหาแยกออกมาอยู่ข้างใต้ */}
+      <div className="absolute right-0 top-0 mt-8 mr-8 w-1/4 bg-white p-4 rounded-lg shadow-xl">
+        <h2 className="text-xl font-semibold mb-2">ค้นหาข้อมูล Log</h2>
+        <div className="flex space-x-4 mb-4">
+          <input
+            type="text"
+            placeholder="ค้นหาข้อความ (เช่น ขนมหวาน)"
+            value={searchText}
+            onChange={handleSearchTextChange}
+            className="border p-2 rounded w-full"
+          />
+          <input
+            type="date"
+            value={searchDate}
+            onChange={handleSearchDateChange}
+            className="border p-2 rounded w-full"
+          />
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export default App;
