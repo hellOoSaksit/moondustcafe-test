@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const uri = "mongodb+srv://vAdmin:8MEDAFQzCrHxAmp1@moondustcafe.trjdyky.mongodb.net/?retryWrites=true&w=majority&appName=MoondustCafe";
+const uri = process.env.MONGO_URI;
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -23,9 +23,10 @@ module.exports = async (req, res) => {
       await newProduct.save();
       res.status(201).json(newProduct);
     } else {
-      res.status(405).json({ message: "Method not allowed" });
+      res.status(405).json({ message: "Method not allowed" }); // รองรับเฉพาะ GET และ POST
     }
   } catch (error) {
+    console.error("Error in API:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

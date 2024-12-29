@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const App = () => {
-  // ตั้งค่า state สำหรับเก็บสินค้า
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -15,13 +14,11 @@ const App = () => {
     fetchProducts();
   }, []);
 
-  // ฟังก์ชันดึงข้อมูลสินค้า
   const fetchProducts = async () => {
     try {
       const res = await axios.get("/api/products");
       const data = res.data;
 
-      // ตรวจสอบว่า data เป็นอาร์เรย์หรือไม่
       if (Array.isArray(data)) {
         setProducts(data);
       } else {
@@ -30,23 +27,21 @@ const App = () => {
       }
     } catch (error) {
       console.error("Error fetching products:", error);
-      setProducts([]); // ตั้งค่าเป็นอาร์เรย์ว่างหากเกิดข้อผิดพลาด
+      setProducts([]);
     }
   };
 
-  // ฟังก์ชันเพิ่มสินค้าใหม่
   const addProduct = async (e) => {
     e.preventDefault();
     try {
       await axios.post("/api/products", newProduct);
       setNewProduct({ name: "", price: "", quantity: "", sweetness: "normal" });
-      fetchProducts(); // ดึงข้อมูลสินค้าใหม่หลังจากเพิ่มสินค้า
+      fetchProducts();
     } catch (error) {
       console.error("Error adding product:", error);
     }
   };
 
-  // ฟังก์ชันจัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewProduct({ ...newProduct, [name]: value });
@@ -55,7 +50,6 @@ const App = () => {
   return (
     <div>
       <h1>Moondust Cafe</h1>
-      {/* ฟอร์มสำหรับเพิ่มสินค้า */}
       <form onSubmit={addProduct}>
         <input
           type="text"
@@ -94,7 +88,6 @@ const App = () => {
       </form>
 
       <h2>Product List</h2>
-      {/* แสดงรายการสินค้า */}
       <ul>
         {Array.isArray(products) && products.length > 0 ? (
           products.map((product) => (
