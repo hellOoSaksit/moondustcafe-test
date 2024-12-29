@@ -1,144 +1,80 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
+import axios from "axios";
 
 const App = () => {
-  const [menu, setMenu] = useState([]);
-  const [newItem, setNewItem] = useState({
+  const [products, setProducts] = useState([]);
+  const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
     quantity: "",
-    sweetness: "ปกติ",
+    sweetness: "normal",
   });
-  const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    fetchMenu();
+    fetchProducts();
   }, []);
 
-  const fetchMenu = async () => {
-    try {
-      const response = await fetch("/api/menu");
-      const data = await response.json();
-      setMenu(data);
-    } catch (error) {
-      console.error("Failed to fetch menu:", error);
-    }
+  const fetchProducts = async () => {
+    const res = await axios.get("https://moondustcafe-test.vercel.app/api/products");
+    setProducts(res.data);
   };
 
-  const addMenuItem = async () => {
-    try {
-      const response = await fetch("/api/menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newItem),
-      });
-      if (response.ok) {
-        fetchMenu();
-        setNewItem({ name: "", price: "", quantity: "", sweetness: "ปกติ" });
-      }
-    } catch (error) {
-      console.error("Failed to add menu item:", error);
-    }
+  const addProduct = async (e) => {
+    e.preventDefault();
+    await axios.post("https://moondustcafe-test.vercel.app/api/products", newProduct);
+    setNewProduct({ name: "", price: "", quantity: "", sweetness: "normal" });
+    fetchProducts();
   };
 
-  const updateMenuItem = async () => {
-    try {
-      const response = await fetch(`/api/menu/${editingItem._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingItem),
-      });
-      if (response.ok) {
-        fetchMenu();
-        setEditingItem(null);
-      }
-    } catch (error) {
-      console.error("Failed to update menu item:", error);
-    }
-  };
-
-  const deleteMenuItem = async (id) => {
-    try {
-      const response = await fetch(`/api/menu/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) fetchMenu();
-    } catch (error) {
-      console.error("Failed to delete menu item:", error);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({ ...newProduct, [name]: value });
   };
 
   return (
-    <div className="app-container">
-      <h1>Moondust Cafe Menu</h1>
-      <div className="menu-form">
+    <div>
+      <h1>Moondust Cafe</h1>
+      <form onSubmit={addProduct}>
         <input
           type="text"
-          placeholder="ชื่อสินค้า"
-          value={newItem.name}
-          onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+          name="name"
+          placeholder="Product Name"
+          value={newProduct.name}
+          onChange={handleChange}
+          required
         />
         <input
           type="number"
-          placeholder="ราคา"
-          value={newItem.price}
-          onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+          name="price"
+          placeholder="Price"
+          value={newProduct.price}
+          onChange={handleChange}
+          required
         />
         <input
           type="number"
-          placeholder="จำนวน"
-          value={newItem.quantity}
-          onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+          name="quantity"
+          placeholder="Quantity"
+          value={newProduct.quantity}
+          onChange={handleChange}
+          required
         />
         <select
-          value={newItem.sweetness}
-          onChange={(e) => setNewItem({ ...newItem, sweetness: e.target.value })}
+          name="sweetness"
+          value={newProduct.sweetness}
+          onChange={handleChange}
         >
-          <option value="หวานน้อย">หวานน้อย</option>
-          <option value="ปกติ">ปกติ</option>
-          <option value="หวานมาก">หวานมาก</option>
+          <option value="low">Low</option>
+          <option value="normal">Normal</option>
+          <option value="high">High</option>
         </select>
-        <button onClick={addMenuItem}>เพิ่มสินค้า</button>
-      </div>
-
+        <button type="submit">Add Product</button>
+      </form>
+      <h2>Product List</h2>
       <ul>
-        {menu.map((item) => (
-          <li key={item._id}>
-            {editingItem?._id === item._id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingItem.name}
-                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingItem.price}
-                  onChange={(e) => setEditingItem({ ...editingItem, price: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingItem.quantity}
-                  onChange={(e) => setEditingItem({ ...editingItem, quantity: e.target.value })}
-                />
-                <select
-                  value={editingItem.sweetness}
-                  onChange={(e) => setEditingItem({ ...editingItem, sweetness: e.target.value })}
-                >
-                  <option value="หวานน้อย">หวานน้อย</option>
-                  <option value="ปกติ">ปกติ</option>
-                  <option value="หวานมาก">หวานมาก</option>
-                </select>
-                <button onClick={updateMenuItem}>บันทึก</button>
-                <button onClick={() => setEditingItem(null)}>ยกเลิก</button>
-              </>
-            ) : (
-              <>
-                {item.name} - {item.price} บาท - {item.quantity} ชิ้น - {item.sweetness}
-                <button onClick={() => setEditingItem(item)}>แก้ไข</button>
-                <button onClick={() => deleteMenuItem(item._id)}>ลบ</button>
-              </>
-            )}
+        {products.map((product) => (
+          <li key={product._id}>
+            {product.name} - ${product.price} - Qty: {product.quantity} - Sweetness: {product.sweetness}
           </li>
         ))}
       </ul>
