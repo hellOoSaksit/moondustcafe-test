@@ -9,40 +9,26 @@ const client = new MongoClient(uri, {
   },
 });
 
-let menuCollection;
-
-client.connect().then(() => {
-  menuCollection = client.db("MoondustCafe").collection("menu");
-  console.log("Connected to MongoDB Atlas");
-}).catch((err) => {
-  console.error("Error connecting to MongoDB:", err);
-});
-
 export default async function handler(req, res) {
-  const { method } = req;
+  const { method, query } = req;
 
-  if (method === "GET") {
-    try {
+  try {
+    await client.connect();
+    const menuCollection = client.db("MoondustCafe").collection("menu");
+
+    if (method === "GET") {
       const menu = await menuCollection.find().toArray();
       return res.status(200).json(menu);
-    } catch (error) {
-      return res.status(500).json({ error: "Failed to fetch menu" });
     }
-  }
 
-  if (method === "POST") {
-    try {
+    if (method === "POST") {
       const menuItem = req.body;
       const result = await menuCollection.insertOne(menuItem);
       return res.status(201).json({ message: "Menu item added successfully", id: result.insertedId });
-    } catch (error) {
-      return res.status(500).json({ error: "Failed to add menu item" });
     }
-  }
 
-  if (method === "PUT") {
-    try {
-      const { id } = req.query;
+    if (method === "PUT") {
+      const { id } = query;
       const updatedMenu = req.body;
       const result = await menuCollection.updateOne(
         { _id: new ObjectId(id) },
@@ -53,24 +39,23 @@ export default async function handler(req, res) {
       } else {
         return res.status(404).json({ error: "Menu item not found" });
       }
-    } catch (error) {
-      return res.status(500).json({ error: "Failed to update menu item" });
     }
-  }
 
-  if (method === "DELETE") {
-    try {
-      const { id } = req.query;
+    if (method === "DELETE") {
+      const { id } = query;
       const result = await menuCollection.deleteOne({ _id: new ObjectId(id) });
       if (result.deletedCount > 0) {
         return res.status(200).json({ message: "Menu item deleted successfully" });
       } else {
         return res.status(404).json({ error: "Menu item not found" });
       }
-    } catch (error) {
-      return res.status(500).json({ error: "Failed to delete menu item" });
     }
-  }
 
-  return res.status(405).json({ error: "Method Not Allowed" });
+    return res.status(405).json({ error: "Method Not Allowed" });
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    await client.close();
+  }
 }
