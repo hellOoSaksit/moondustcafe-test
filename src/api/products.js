@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const uri = "mongodb+srv://<db_username>:<db_password>@moondustcafe.trjdyky.mongodb.net/?retryWrites=true&w=majority&appName=MoondustCafe";
+const uri = "mongodb+srv://vAdmin:8MEDAFQzCrHxAmp1@moondustcafe.trjdyky.mongodb.net/?retryWrites=true&w=majority&appName=MoondustCafe";
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
