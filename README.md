@@ -1,70 +1,112 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Moondust Cafe - Web Application
 
-## Available Scripts
+## 🚀 **ภาพรวม**
 
-In the project directory, you can run:
+**Moondust Cafe** เป็นแอปพลิเคชันเว็บที่พัฒนาด้วย React สำหรับการจัดการเมนูและบันทึกข้อมูลสำหรับร้านกาแฟ โดยแอปนี้มีฟังก์ชันที่ช่วยให้ผู้ใช้งานสามารถเพิ่ม แก้ไข และลบเมนูสินค้าได้ พร้อมทั้งเก็บบันทึกการทำงานต่าง ๆ ที่เกิดขึ้นในระบบ ซึ่งผู้ใช้งานสามารถกรองและค้นหาข้อมูลบันทึกโดยใช้วันที่หรือข้อความที่ต้องการได้
 
-### `npm start`
+## 💡 **ฟีเจอร์**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **เพิ่มสินค้าใหม่**: เพิ่มสินค้าใหม่ไปยังเมนู
+- **แก้ไขและลบสินค้า**: สามารถแก้ไขหรือลบสินค้าในเมนู
+- **บันทึกการกระทำ**: ทุกการกระทำ (เพิ่ม, แก้ไข, ลบ) จะถูกบันทึกพร้อมเวลาที่เกิดขึ้น
+- **ค้นหาบันทึกการกระทำ**: ค้นหาบันทึกการกระทำจากข้อความ เช่น "ขนมหวาน" หรือเลือกวันที่ที่ต้องการ
+- **ออกแบบให้รองรับทุกอุปกรณ์**: รองรับทั้งมือถือและเดสก์ท็อป
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🖥️ **เทคโนโลยีที่ใช้**
 
-### `npm test`
+- **React**: สำหรับการสร้าง UI แบบคอมโพเนนต์
+- **Firebase**: ใช้สำหรับฐานข้อมูลแบบเรียลไทม์ในการเก็บข้อมูลสินค้าและบันทึก
+- **TailwindCSS**: ใช้สำหรับการจัดแต่ง CSS แบบ utility-first
+- **JavaScript/ES6**: สำหรับเขียนฟังก์ชันและลอจิกของแอป
+- **Firebase Firestore**: ใช้ในการเก็บข้อมูลสินค้าและบันทึกการกระทำ
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## ⚙️ **การติดตั้งและตั้งค่า**
 
-### `npm run build`
+### 1. Clone โครงการ:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+git clone https://github.com/hellOoSaksit/moondustcafe-test.git
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2. เข้าไปที่โฟลเดอร์โปรเจกต์:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+cd moondustcafe-test
+```
 
-### `npm run eject`
+### 3. ติดตั้ง dependencies:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 4. ตั้งค่า Firebase
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. ไปที่ [Firebase Console](https://console.firebase.google.com/)
+2. สร้างโปรเจกต์ใหม่หากยังไม่มี
+3. ตั้งค่า Firestore และนำข้อมูลการตั้งค่าของ Firebase มาติดตั้งในไฟล์ `src/firebase.js`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+ตัวอย่าง:
+```js
+// src/firebase.js
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
-## Learn More
+// กำหนดค่าของ Firebase
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+};
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 5. รันแอปในเครื่องท้องถิ่น:
 
-### Code Splitting
+```bash
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+โปรเจกต์จะเริ่มต้นเซิร์ฟเวอร์ที่ [http://localhost:3000](http://localhost:3000)
 
-### Analyzing the Bundle Size
+## 🧑‍💻 **การใช้งาน**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- **เพิ่มสินค้าใหม่**: คลิกที่ปุ่ม "เพิ่มสินค้า" เพื่อเพิ่มสินค้าใหม่ในเมนู
+- **แก้ไขหรือหักลบสินค้า**: ใช้ปุ่ม "แก้ไข" หรือ "ลบ" ข้างๆ สินค้าในการแก้ไขหรือลบ
+- **ดูและกรองบันทึกการกระทำ**: ในส่วน "Log การแก้ไข" จะเป็นการแสดงบันทึกการกระทำทั้งหมด คุณสามารถกรองบันทึกตามคำค้นหาหรือวันที่
+- **อัพเดตแบบเรียลไทม์**: ข้อมูลจะอัพเดตทันทีที่มีการเปลี่ยนแปลงโดยไม่ต้องโหลดหน้าใหม่
 
-### Making a Progressive Web App
+## 🖼️ **การออกแบบ UI/UX**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+แอปพลิเคชันได้รับการออกแบบให้ใช้งานง่ายและสะดวก โดยใช้ **TailwindCSS** สำหรับการจัดแต่งและให้รองรับการใช้งานบนหลายอุปกรณ์ การแสดงผลการกระทำจะถูกจัดแยกตามประเภท เช่น
+- **เพิ่ม** (สีเขียว)
+- **แก้ไข** (สีน้ำเงิน)
+- **ลบ** (สีแดง)
 
-### Advanced Configuration
+## 🔎 **การค้นหาบันทึกการกระทำ**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- **ค้นหาข้อความ**: พิมพ์ชื่อสินค้าที่ต้องการ เช่น "ขนมหวาน" ในช่องค้นหา
+- **ค้นหาจากวันที่**: เลือกวันที่ที่ต้องการจากตัวเลือกวันที่
 
-### Deployment
+## 🛠️ **การพัฒนา**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+หากคุณต้องการร่วมพัฒนาโครงการนี้ โปรดทำตามขั้นตอนเหล่านี้:
 
-### `npm run build` fails to minify
+1. Fork โครงการนี้
+2. สร้าง branch ใหม่ (`git checkout -b feature/your-feature`)
+3. ทำการแก้ไขและ commit (`git commit -m 'Add new feature'`)
+4. Push ไปที่ branch (`git push origin feature/your-feature`)
+5. สร้าง Pull Request
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📝 **การปรับปรุงในอนาคต**
+
+- เพิ่มระบบการเข้าสู่ระบบ (เช่น Firebase Authentication) เพื่อความปลอดภัย
+- เพิ่มฟีเจอร์การจัดหมวดหมู่สินค้า (เช่น เครื่องดื่ม, ขนม)
+- เพิ่มฟีเจอร์การนำเข้าข้อมูลสินค้าแบบ bulk (จากไฟล์ CSV หรือ JSON)
+
